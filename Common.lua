@@ -1,14 +1,14 @@
 
 --#region Const
-FRAMES_TO_SHUFFLE = 40
+FRAMES_TO_SHUFFLE = 50
 FRAMES_TO_ROTATION = 1
 --#endregion
 
 --#region API
 
----Move object to new coordinate
+---Перемещает объект на новую координату
 ---@param obj tts__Object|nil
----@param coords table
+---@param coords table можно задать любые из координат, например {x=10, y=-2}
 function Move(obj, coords)
     if not obj then
         return
@@ -20,16 +20,21 @@ function Move(obj, coords)
     obj.setPosition({newX, newY, newZ})
 end
 
----Test if all objects initialized
----@param table table
-function TestObjectsInit(table)
-    for name,obj in pairs(table) do
+---Проверяет что все объекты в таблице инициализированы
+---@param tab table
+function TestObjectsInit(tab)
+    for name,obj in pairs(tab) do
         if not obj then
             print("Object '" .. name .. "' isn't initialized")
         end
     end
 end
 
+---Получает колоду и/или карту находящуюся в зоне
+---@param zone tts__ScriptingTrigger
+---@param tag string если передан, то все объекты без этого тэга игнорируются
+---@return tts__Deck|nil
+---@return tts__Card|nil
 function GetDeckCardFromZone(zone, tag)
     local deck, card
     for _,obj in pairs(zone.getObjects()) do
@@ -51,10 +56,14 @@ function GetDeckCardFromZone(zone, tag)
     return deck, card
 end
 
+---Загружает состояние
+---@param script_state string
+---@return nil|any state декодированный JSON, обычно множество
+---@return boolean loaded загружено ли
 function LoadedState(script_state)
     local state, loaded
     if script_state == '' then
-        state = ''
+        state = nil
         loaded = false
     else
         state = JSON.decode(script_state)
@@ -63,9 +72,9 @@ function LoadedState(script_state)
     return state, loaded
 end
 
----Returns first not-nil value
+---Возвращает первое значение из переданной таблицы которое не nil
 ---@param ... table
----@return any
+---@return any val первое не-nil значение
 function First(...)
     local params = {...}
     for i,val in pairs(params) do
@@ -76,7 +85,11 @@ function First(...)
     return nil
 end
 
-
+---Возвращает первое или второе, в зависимости от выражения
+---@param expression boolean
+---@param onTrue any
+---@param onFalse any
+---@return any
 function Choose(expression, onTrue, onFalse)
     if expression then
         return onTrue
@@ -85,29 +98,37 @@ function Choose(expression, onTrue, onFalse)
     end
 end
 
+---Переворачивает объект в открытую
+---@param obj tts__Object
 function SetFaceUp(obj)
     local curr = obj.getRotation()
     obj.setRotation({curr.x, curr.y, 0})
 end
 
+---Переворачивает объект в открытую плавно
+---@param obj tts__Object
 function SetFaceUpSmooth(obj)
     local curr = obj.getRotation()
     obj.setRotationSmooth({curr.x, curr.y, 0})
 end
 
+---Переворачивает объект взакрытую
+---@param obj tts__Object
 function SetFaceDown(obj)
     local curr = obj.getRotation()
     obj.setRotation({curr.x, curr.y, 180})
 end
 
+---Переворачивает объект взакрытую плавно
+---@param obj tts__Object
 function SetFaceDownSmooth(obj)
     local curr = obj.getRotation()
     obj.setRotationSmooth({curr.x, curr.y, 180})
 end
 
----Returns table keys
+---Возвращает ключи таблицы
 ---@param tab table
----@return table table
+---@return table
 function Keys(tab)
     local res = {}
     for k,v in pairs(tab) do
@@ -116,9 +137,9 @@ function Keys(tab)
     return res
 end
 
----Returns table values
+---Возвращает значения таблицы
 ---@param tab table
----@return table table
+---@return table
 function Values(tab)
     local res = {}
     for k,v in pairs(tab) do
@@ -127,10 +148,18 @@ function Values(tab)
     return res
 end
 
+---Проверяет что ключ есть в таблице
+---@param key any
+---@param tab table
+---@return boolean
 function KeyIsInTable(key, tab)
     return (tab[key] ~= nil)
 end
 
+---Проверяет что значение есть в таблице
+---@param val any
+---@param tab table
+---@return boolean
 function ValueIsInTable(val, tab)
     for _,v in pairs(tab) do
         if v == val then
@@ -140,6 +169,10 @@ function ValueIsInTable(val, tab)
     return false
 end
 
+---Делит строку на части разделителем
+---@param str string
+---@param splitter string
+---@return string[]
 function Split(str, splitter)
     if string.len(splitter) ~= 1 then
         error('Split cant work with splitter ' .. splitter)
@@ -163,6 +196,9 @@ function Split(str, splitter)
     return res
 end
 
+---Соответствие из строки
+---@param notes string строка в формате "ключ1:знач1;ключ2:знач2"
+---@return table set в формате {ключ1='знач1', ключ2='знач2'}
 function SetFromNotes(notes)
     local res = {}
     local ss = Split(notes, ';')
@@ -175,6 +211,9 @@ function SetFromNotes(notes)
     return res
 end
 
+---Перемешивает колоду и через время вызывается callback
+---@param deck tts__Deck
+---@param callback callback_function
 function ShuffleAsync(deck, callback)
 
     deck.shuffle()
@@ -184,6 +223,9 @@ function ShuffleAsync(deck, callback)
     end
 end
 
+---Перевернуть взакрытую плавно и затем выполнить функцию
+---@param obj tts__Object
+---@param callback callback_function
 function SetFaceDownAsync(obj, callback)
     SetFaceDown(obj)
 
@@ -192,6 +234,9 @@ function SetFaceDownAsync(obj, callback)
     end
 end
 
+---Перевернуть в открытую плавно и затем выполнить функцию
+---@param obj tts__Object
+---@param callback callback_function
 function SetFaceUpAsync(obj, callback)
     SetFaceUp(obj)
 
@@ -200,6 +245,9 @@ function SetFaceUpAsync(obj, callback)
     end
 end
 
+---Удалить значение из таблицы
+---@param val any
+---@param tab table
 function RemoveValueFromTable(val, tab)
     local toRemove = {}
     for i,v in pairs(tab) do
@@ -212,6 +260,10 @@ function RemoveValueFromTable(val, tab)
     end
 end
 
+---Возвращает следующего игрока
+---@param list tts__PlayerColor[] порядок хода игроков, цветами
+---@param color tts__PlayerColor
+---@return tts__PlayerColor
 function NextPlayer(list, color)
     local found = false
     for _,col in ipairs(list) do
@@ -225,6 +277,10 @@ function NextPlayer(list, color)
     return list[1]
 end
 
+---Возвращает очередность ходов, упорядоченную начиная с переданного цвета
+---@param list tts__PlayerColor[] порядок ходов
+---@param color tts__PlayerColor начинать с этого цвета
+---@return tts__PlayerColor[] list
 function SortByPlayer(list, color)
     local res = {}
 
@@ -252,12 +308,22 @@ function SortByPlayer(list, color)
     return res
 end
 
+---Логирует все переданные значения по очереди
+---@param ... any[]
 function Log(...)
     for _,val in pairs({...}) do
         log(val)
     end
 end
 
+---@class tts__Propertys
+---@field tag string
+---@field gm_notes string
+
+---Отбирает объекты по свойствам
+---@param objects nil|tts__Object[]|tts__IndexedSimpleObjectState[]
+---@param properties tts__Propertys[] отбор
+---@return nil|tts__Object[]|tts__IndexedSimpleObjectState[]
 function GetObjectsByProperty(objects, properties)
     local res = {}
     for _,obj in ipairs(objects) do
@@ -286,6 +352,10 @@ function GetObjectsByProperty(objects, properties)
     return res
 end
 
+---Возвращает вектор вращения такой же как у переданного объекта, с возможно отдельным z
+---@param object tts__Object
+---@param z number|nil
+---@return tts__Vector
 function XYRotation(object, z)
     local z = Choose(z, z, 0)
     local rotation = object.getRotation()

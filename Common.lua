@@ -53,12 +53,7 @@ function GetDeckCardFromZone(zone, tag)
     local deck, card
     for _,obj in pairs(zone.getObjects()) do
 
-        local continue = false
-        if tag then
-            continue = not obj.hasTag(tag)
-        end
-
-        if not continue then
+        if not tag or tag and obj.hasTag(tag) then
             if obj.type == 'Deck' then
                 deck = obj
             elseif obj.type == 'Card' then

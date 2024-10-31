@@ -116,9 +116,16 @@ end
 
 ---Переворачивает объект в открытую плавно
 ---@param obj tts__Object
-function SetFaceUpSmooth(obj)
+---@param direction '+/-' направление поворота: налево или направо
+function SetFaceUpSmooth(obj, direction)
     local curr = obj.getRotation()
-    obj.setRotationSmooth({curr.x, curr.y, 0})
+    local z = 0
+    if     direction == '+' then
+        z = z + 0.1
+    elseif direction == '-' then
+        z = z - 0.1
+    end
+    obj.setRotationSmooth({curr.x, curr.y, z})
 end
 
 ---Переворачивает объект взакрытую
@@ -130,9 +137,16 @@ end
 
 ---Переворачивает объект взакрытую плавно
 ---@param obj tts__Object
-function SetFaceDownSmooth(obj)
+---@param direction '+/-' направление поворота: налево или направо
+function SetFaceDownSmooth(obj, direction)
     local curr = obj.getRotation()
-    obj.setRotationSmooth({curr.x, curr.y, 180})
+    local z = 180
+    if     direction == '-' then
+        z = z + 0.5
+    elseif direction == '+' then
+        z = z - 0.5
+    end
+    obj.setRotationSmooth({curr.x, curr.y, z})
 end
 
 ---Возвращает ключи таблицы
@@ -380,6 +394,5 @@ function GetPlayerByColor(color)
     end
     return nil
 end
-
 
 --#endregion

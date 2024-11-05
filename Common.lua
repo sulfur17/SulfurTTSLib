@@ -184,12 +184,12 @@ end
 ---@param tab table
 ---@return boolean
 function ValueIsInTable(val, tab)
-    for _,v in pairs(tab) do
+    for k,v in pairs(tab) do
         if v == val then
-            return true
+            return k
         end
     end
-    return false
+    return nil
 end
 
 ---Делит строку на части разделителем
@@ -393,6 +393,23 @@ function GetPlayerByColor(color)
         end
     end
     return nil
+end
+
+function ShuffledList(list)
+    for i = #list, 2, -1 do
+        local j = math.random(i)
+        list[i], list[j] = list[j], list[i]
+    end
+    return list
+end
+
+function RemoveValueFromList(list, val)
+    for i,v in ipairs(list) do
+        if v == val then
+            table.remove(list, i)
+        end
+    end
+    return list
 end
 
 --#endregion

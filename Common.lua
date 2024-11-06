@@ -20,6 +20,20 @@ function Move(obj, coords)
     obj.setPosition({newX, newY, newZ})
 end
 
+---Перемещает объект на новые координаты плавно
+---@param obj tts__Object|nil
+---@param coords table можно задать любые из координат, например {x=10, y=-2}
+function MoveSmooth(obj, coords)
+    if not obj then
+        return
+    end
+    local pos = obj.getPosition()
+    local newX = First(coords.x, pos.x)
+    local newY = First(coords.y, pos.y)
+    local newZ = First(coords.z, pos.z)
+    obj.setPositionSmooth({newX, newY, newZ})
+end
+
 ---Поворачивает объект на новые координаты
 ---@param obj tts__Object|nil
 ---@param coords table можно задать любые из координат, например {x=10, y=-2}

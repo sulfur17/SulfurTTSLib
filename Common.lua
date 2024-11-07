@@ -426,4 +426,19 @@ function RemoveValueFromList(list, val)
     return list
 end
 
+function AppendList(listTo, listFrom)
+    for _,val in ipairs(listFrom) do
+        table.insert(listTo, val)
+    end
+    return listTo
+end
+
+function CopyTable(tab)
+    local res = {}
+    for k,v in pairs(tab) do
+        res[k] = v
+    end
+    return res
+end
+
 --#endregion

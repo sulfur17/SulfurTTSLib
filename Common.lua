@@ -295,6 +295,7 @@ function RemoveValueFromTable(val, tab)
     for _,i in ipairs(toRemove) do
         table.remove(tab, i)
     end
+    return tab
 end
 
 ---Возвращает следующего игрока
@@ -468,6 +469,15 @@ function ObjectsOnPlaces(objects, places)
     end
 
     return objectsByPlaces, placesByObjects
+end
+
+function KeyByValue(tab, value)
+    for k,v in pairs(tab) do
+        if v == value then
+            return k
+        end
+    end
+    return nil
 end
 
 --#endregion

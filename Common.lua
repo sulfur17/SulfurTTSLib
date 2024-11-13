@@ -441,4 +441,33 @@ function CopyTable(tab)
     return res
 end
 
+function ObjectsOnPlaces(objects, places)
+    local objectsByPlaces, placesByObjects = {}, {}
+
+    for _,sec in pairs(places) do
+        objectsByPlaces[sec] = {}
+    end
+
+    for _,obj in ipairs(objects) do
+        if MovableObject(obj) then
+            local n = obj.getName()
+            local hitlist = Physics.cast({
+                origin = obj.getPosition()+Vector(0, 0.5, 0),
+                direction = Vector(0, -1, 0),
+                type = 1,
+                max_distance = 2,
+                debug = false,
+            })
+
+            local sector = ObjectIsOnSector(hitlist)
+            if sector then
+                table.insert(objectsByPlaces[sector], obj)
+                placesByObjects[obj] = sector
+            end
+        end
+    end
+
+    return objectsByPlaces, placesByObjects
+end
+
 --#endregion

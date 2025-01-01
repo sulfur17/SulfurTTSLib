@@ -400,6 +400,78 @@ function XYRotation(object, z)
     return Vector(rotation.x, rotation.y, z)
 end
 
+---Располагает объекты по кругу вокруг точки
+---@param objectList tts__Object[]
+---@param radius number
+---@param startAngle number стартовый угол
+---@param center tts__Vector
+---@param y number
+---@param additionalRotate number
+function ArrangeInCircle(objectList, radius, startAngle, center, y, additionalRotate)
+
+    if #objectList == 0 then
+        return
+    end
+
+    if not startAngle then 
+        startAngle = 0
+    end
+
+    if not center then
+        center = Vector(0,0,0)
+    end
+
+    if not y then
+        y = objectList[1].getPosition().y
+    end
+
+    if not additionalRotate then
+        additionalRotate = 0
+    end
+
+    local angleStep = 360 / #objectList
+    local angle = startAngle
+    for _,obj in ipairs(objectList) do
+        --error(1)
+        local z = math.cos(math.rad(angle)) * radius + center.z
+        local x = math.sin(math.rad(angle)) * radius + center.x
+        obj.setPositionSmooth(Vector(x, y, z))
+        obj.setRotationSmooth(Vector(0, angle + additionalRotate, 0))
+        angle = angle + angleStep
+    end
+end
+
+---Возвращает игроков кроме ГМ'а и зрителей
+function GetTruePlayers()
+    local colors = {}
+    for _,player in ipairs(Player.getPlayers()) do
+        if player.color ~='Black' and player.color ~='Grey' then
+            table.insert(colors, player.color)
+        end
+    end
+end
+
+---Удаляет лишние руки
+function DestructExtraHands()
+
+    local colors = {}
+    for _,player in ipairs(Player.getPlayers()) do
+        table.insert(colors, player.color)
+    end
+
+    local toDelete = {}
+    for _,hand in ipairs(Hands.getHands()) do
+        if not ValueIsInTable(hand.getValue(), colors) then
+            table.insert(toDelete, hand)
+        end
+    end
+
+    while #toDelete > 0 do
+        toDelete[#toDelete].destruct()
+        toDelete[#toDelete] = nil
+    end
+end
+
 function GetPlayerByColor(color)
     local players = Player.getPlayers()
     for _,player in ipairs(players) do
@@ -442,7 +514,8 @@ function CopyTable(tab)
     return res
 end
 
-function ObjectsOnPlaces(objects, places)
+---Возвращает соответствие мест и находящихся на них объектов
+--[[function ObjectsOnPlaces(objects, places)
     local objectsByPlaces, placesByObjects = {}, {}
 
     for _,sec in pairs(places) do
@@ -469,7 +542,7 @@ function ObjectsOnPlaces(objects, places)
     end
 
     return objectsByPlaces, placesByObjects
-end
+end]]
 
 function KeyByValue(tab, value)
     for k,v in pairs(tab) do
@@ -478,6 +551,12 @@ function KeyByValue(tab, value)
         end
     end
     return nil
+end
+
+function SetAllInteractable()
+    for _,obj in ipairs(getObjects()) do
+        obj.interactable = true
+    end
 end
 
 --#endregion

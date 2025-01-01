@@ -142,6 +142,15 @@ function SetFaceUpSmooth(obj, direction)
     obj.setRotationSmooth({curr.x, curr.y, z})
 end
 
+---Проверяет что объект лежит в открытую
+---@param obj tts__Object
+---@return boolean
+function IsFaceUp(obj)
+    local curr = obj.getRotation()
+    local res = (-1 < curr.z) and (curr.z < 1)
+    return res
+end
+
 ---Переворачивает объект взакрытую
 ---@param obj tts__Object
 function SetFaceDown(obj)
@@ -161,6 +170,13 @@ function SetFaceDownSmooth(obj, direction)
         z = z - 0.5
     end
     obj.setRotationSmooth({curr.x, curr.y, z})
+end
+
+---Проверяет что объект лежит в закрытую
+---@param obj tts__Object
+---@return boolean
+function IsFaceDown(obj)
+    return not IsFaceUp(obj)
 end
 
 ---Возвращает ключи таблицы
@@ -407,27 +423,15 @@ end
 ---@param center tts__Vector
 ---@param y number
 ---@param additionalRotate number
-function ArrangeInCircle(objectList, radius, startAngle, center, y, additionalRotate)
-
-    if #objectList == 0 then
-        return
+function ArrangeInCircle(objectList, radius, optionalParams) --startAngle, center, y, additionalRotate)
+    if not optionalParams then
+        optionalParams = {}
     end
 
-    if not startAngle then 
-        startAngle = 0
-    end
-
-    if not center then
-        center = Vector(0,0,0)
-    end
-
-    if not y then
-        y = objectList[1].getPosition().y
-    end
-
-    if not additionalRotate then
-        additionalRotate = 0
-    end
+    local startAngle = First(optionalParams.startAngle, 0)
+    local center = First(optionalParams.center, Vector(0,0,0))
+    local y = First(optionalParams.y, objectList[1].getPosition().y)
+    local additionalRotate = First(optionalParams.additionalRotate, 0)
 
     local angleStep = 360 / #objectList
     local angle = startAngle

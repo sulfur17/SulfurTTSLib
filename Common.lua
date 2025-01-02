@@ -563,4 +563,26 @@ function SetAllInteractable()
     end
 end
 
+---Делает из списка гуидов список объектов
+---@param guids list Список гуидов
+function ObjectsFromGUIDS(guids)
+    local res = {}
+    for i,guid in ipairs(guids) do
+        local obj = getObjectFromGUID(guid)
+        table.insert(res, i, obj)
+    end
+    return res
+end
+
+---Делает из списка объектов список гуидов
+---@param objects list Список объектов
+function ObjectsGUIDS(objects)
+    local res = {}
+    for i,obj in ipairs(objects) do
+        local obj = obj.guid
+        table.insert(res, i, obj)
+    end
+    return res
+end
+
 --#endregion

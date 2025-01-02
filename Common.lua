@@ -316,9 +316,12 @@ end
 
 ---Возвращает следующего игрока
 ---@param list tts__PlayerColor[] порядок хода игроков, цветами
----@param color tts__PlayerColor
+---@param color tts__PlayerColor следующего после этого цвета
 ---@return tts__PlayerColor
 function NextPlayer(list, color)
+    list = Choose(list, list, Turns.order)
+    color = Choose(color, color, Turns.turn_color)
+
     local found = false
     for _,col in ipairs(list) do
         if found then
@@ -336,6 +339,9 @@ end
 ---@param color tts__PlayerColor начинать с этого цвета
 ---@return tts__PlayerColor[] list
 function SortByPlayer(list, color)
+    list = Choose(list, list, Turns.order)
+    color = Choose(color, color, Turns.turn_color)
+
     local res = {}
 
     local found = false
@@ -582,6 +588,24 @@ function ObjectsGUIDS(objects)
         local obj = obj.guid
         table.insert(res, i, obj)
     end
+    return res
+end
+
+---Определяет цвет ближайшей к объекту руки
+---@param object tts__Object
+---@return tts__Color
+function GetColorByDistance(object)
+    local res
+
+    local distance = 999
+    for _,hand in pairs(Hands.getHands()) do
+        local newDistance = Vector.distance(object.getPosition(), hand.getPosition())
+        if newDistance < distance then
+            distance = newDistance
+            res = hand.getValue()
+        end
+    end
+
     return res
 end
 

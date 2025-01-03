@@ -4,88 +4,6 @@ FRAMES_TO_SHUFFLE = 50
 FRAMES_TO_ROTATION = 1
 --#endregion
 
---#region Math
-
----Выясняет находится ли значение в окрестности
----@param value number значение
----@param target number цель
----@param fault number погрешность
----@return boolean
-function InVicinity(value, target, fault)
-    local fault = First(fault, 1)
-    local res = (target - fault < value) and (value < target + fault)
-    return res
-end
-
---#endregion Math
-
---#region Move
-
----Перемещает объект на новые координаты
----@param obj tts__Object|nil
----@param coords table можно задать любые из координат, например {x=10, y=-2}
-function Move(obj, coords)
-    if not obj then
-        return
-    end
-    local pos = obj.getPosition()
-    local newX = First(coords.x, pos.x)
-    local newY = First(coords.y, pos.y)
-    local newZ = First(coords.z, pos.z)
-    obj.setPosition({newX, newY, newZ})
-end
-
----Перемещает объект на новые координаты плавно
----@param obj tts__Object|nil
----@param coords table можно задать любые из координат, например {x=10, y=-2}
-function MoveSmooth(obj, coords)
-    if not obj then
-        return
-    end
-    local pos = obj.getPosition()
-    local newX = First(coords.x, pos.x)
-    local newY = First(coords.y, pos.y)
-    local newZ = First(coords.z, pos.z)
-    obj.setPositionSmooth({newX, newY, newZ})
-end
-
----Поворачивает объект на новые координаты
----@param obj tts__Object|nil
----@param coords table можно задать любые из координат, например {x=10, y=-2}
-function RotateSmooth(obj, coords)
-    if not obj then
-        return
-    end
-    local pos = obj.getRotation()
-    local newX = First(coords.x, pos.x)
-    local newY = First(coords.y, pos.y)
-    local newZ = First(coords.z, pos.z)
-    obj.setRotationSmooth({newX, newY, newZ})
-end
-
----Переворачивает объект взакрытую
----@param obj tts__Object
-function SetFaceDown(obj)
-    local curr = obj.getRotation()
-    obj.setRotation({curr.x, curr.y, 180})
-end
-
----Переворачивает объект взакрытую плавно
----@param obj tts__Object
----@param direction '+/-' направление поворота: налево или направо
-function SetFaceDownSmooth(obj, direction)
-    local curr = obj.getRotation()
-    local z = 180
-    if     direction == '-' then
-        z = z + 0.5
-    elseif direction == '+' then
-        z = z - 0.5
-    end
-    obj.setRotationSmooth({curr.x, curr.y, z})
-end
-
---#endregion Move
-
 --#region TTS
 
 ---Загружает состояние
@@ -431,6 +349,88 @@ end
 --#endregion Player
 
 --#endregion TTS
+
+--#region Math
+
+---Выясняет находится ли значение в окрестности
+---@param value number значение
+---@param target number цель
+---@param fault number погрешность
+---@return boolean
+function InVicinity(value, target, fault)
+    local fault = First(fault, 1)
+    local res = (target - fault < value) and (value < target + fault)
+    return res
+end
+
+--#endregion Math
+
+--#region Move
+
+---Перемещает объект на новые координаты
+---@param obj tts__Object|nil
+---@param coords table можно задать любые из координат, например {x=10, y=-2}
+function Move(obj, coords)
+    if not obj then
+        return
+    end
+    local pos = obj.getPosition()
+    local newX = First(coords.x, pos.x)
+    local newY = First(coords.y, pos.y)
+    local newZ = First(coords.z, pos.z)
+    obj.setPosition({newX, newY, newZ})
+end
+
+---Перемещает объект на новые координаты плавно
+---@param obj tts__Object|nil
+---@param coords table можно задать любые из координат, например {x=10, y=-2}
+function MoveSmooth(obj, coords)
+    if not obj then
+        return
+    end
+    local pos = obj.getPosition()
+    local newX = First(coords.x, pos.x)
+    local newY = First(coords.y, pos.y)
+    local newZ = First(coords.z, pos.z)
+    obj.setPositionSmooth({newX, newY, newZ})
+end
+
+---Поворачивает объект на новые координаты
+---@param obj tts__Object|nil
+---@param coords table можно задать любые из координат, например {x=10, y=-2}
+function RotateSmooth(obj, coords)
+    if not obj then
+        return
+    end
+    local pos = obj.getRotation()
+    local newX = First(coords.x, pos.x)
+    local newY = First(coords.y, pos.y)
+    local newZ = First(coords.z, pos.z)
+    obj.setRotationSmooth({newX, newY, newZ})
+end
+
+---Переворачивает объект взакрытую
+---@param obj tts__Object
+function SetFaceDown(obj)
+    local curr = obj.getRotation()
+    obj.setRotation({curr.x, curr.y, 180})
+end
+
+---Переворачивает объект взакрытую плавно
+---@param obj tts__Object
+---@param direction '+/-' направление поворота: налево или направо
+function SetFaceDownSmooth(obj, direction)
+    local curr = obj.getRotation()
+    local z = 180
+    if     direction == '-' then
+        z = z + 0.5
+    elseif direction == '+' then
+        z = z - 0.5
+    end
+    obj.setRotationSmooth({curr.x, curr.y, z})
+end
+
+--#endregion Move
 
 --#region Table
 

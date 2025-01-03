@@ -337,11 +337,8 @@ end
 ---Возвращает очередность ходов, упорядоченную начиная с переданного цвета
 ---@param list tts__PlayerColor[] порядок ходов
 ---@param color tts__PlayerColor начинать с этого цвета
----@return tts__PlayerColor[] list
+---@return tts__PlayerColor[]
 function SortByPlayer(list, color)
-    list = Choose(list, list, Turns.order)
-    color = Choose(color, color, Turns.turn_color)
-
     local res = {}
 
     local found = false
@@ -442,7 +439,6 @@ function ArrangeInCircle(objectList, radius, optionalParams) --startAngle, cente
     local angleStep = 360 / #objectList
     local angle = startAngle
     for _,obj in ipairs(objectList) do
-        --error(1)
         local z = math.cos(math.rad(angle)) * radius + center.z
         local x = math.sin(math.rad(angle)) * radius + center.x
         obj.setPositionSmooth(Vector(x, y, z))
@@ -452,6 +448,7 @@ function ArrangeInCircle(objectList, radius, optionalParams) --startAngle, cente
 end
 
 ---Возвращает игроков кроме ГМ'а и зрителей
+---@return tts__PlayerColor[]
 function GetTruePlayers()
     local colors = {}
     for _,player in ipairs(Player.getPlayers()) do
@@ -459,6 +456,7 @@ function GetTruePlayers()
             table.insert(colors, player.color)
         end
     end
+    return colors
 end
 
 ---Удаляет лишние руки
@@ -482,6 +480,9 @@ function DestructExtraHands()
     end
 end
 
+---Возвращает игрока по цвету
+---@param color tts__PlayerColor
+---@return tts__Player|nil
 function GetPlayerByColor(color)
     local players = Player.getPlayers()
     for _,player in ipairs(players) do
@@ -607,6 +608,15 @@ function GetColorByDistance(object)
     end
 
     return res
+end
+
+function HasAnyTagFrom(object, tags)
+    for _,tag in ipairs(tags) do
+        if object.hasTag(tag) then
+            return true
+        end
+    end
+    return false
 end
 
 --#endregion

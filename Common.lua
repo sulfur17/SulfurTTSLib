@@ -2,9 +2,167 @@
 --#region Const
 FRAMES_TO_SHUFFLE = 50
 FRAMES_TO_ROTATION = 1
+TurnsType = {Auto = 1, Custom = 2}
 --#endregion
 
 --#region TTS
+
+--#region Player
+
+---Определяет цвет ближайшей к объекту руки
+---@param object tts__Object
+---@return tts__Color
+function GetColorByDistance(object)
+    local res
+
+    local distance = 999
+    for _,hand in pairs(Hands.getHands()) do
+        local newDistance = Vector.distance(object.getPosition(), hand.getPosition())
+        if newDistance < distance then
+            distance = newDistance
+            res = hand.getValue()
+        end
+    end
+
+    return res
+end
+
+---Возвращает следующего игрока
+---@param list tts__PlayerColor[] порядок хода игроков, цветами
+---@param color tts__PlayerColor следующего после этого цвета
+---@return tts__PlayerColor
+function NextPlayer(list, color)
+    list = Choose(list, list, Turns.order)
+    color = Choose(color, color, Turns.turn_color)
+
+    local found = false
+    for _,col in ipairs(list) do
+        if found then
+            return col
+        end
+        if color == col then
+            found = true
+        end
+    end
+    return list[1]
+end
+
+---Возвращает очередность ходов, упорядоченную начиная с переданного цвета
+---@param list tts__PlayerColor[] порядок ходов
+---@param color tts__PlayerColor начинать с этого цвета
+---@return tts__PlayerColor[]
+function SortByPlayer(list, color)
+    local res = {}
+
+    local found = false
+    for _,col in ipairs(list) do
+        if color == col then
+            found = true
+        end
+        if found then
+            table.insert(res, col)
+        end
+    end
+
+    found = false
+    for _,col in ipairs(list) do
+        if color == col then
+            found = true
+            break
+        end
+        if not found then
+            table.insert(res, col)
+        end
+    end
+
+    return res
+end
+
+---Возвращает игроков кроме ГМ'а и зрителей
+---@return tts__PlayerColor[]
+function GetTruePlayers()
+    local colors = {}
+    for _,player in ipairs(Player.getPlayers()) do
+        if player.color ~='Black' and player.color ~='Grey' then
+            table.insert(colors, player.color)
+        end
+    end
+    return colors
+end
+
+---Возвращает игрока по цвету
+---@param color tts__PlayerColor
+---@return tts__Player|nil
+function GetPlayerByColor(color)
+    local players = Player.getPlayers()
+    for _,player in ipairs(players) do
+        if player.color == color then
+            return player
+        end
+    end
+    return nil
+end
+
+---Руки заданного цвета
+---@param color tts__Color
+function PlayerHands(color)
+    local res = {}
+    for _,hand in ipairs(Hands.getHands()) do
+        if hand.getValue() == color then
+            table.insert(res, hand)
+        end
+    end
+    return res
+end
+
+function MiddlePoint()
+    local res = Vector(0,0,0)
+    for _,hand in ipairs(Hands.getHands()) do
+        res = res + hand.getPosition()
+    end
+    return res * (1 / #Hands.getHands())
+end
+
+function TurnOrder()
+    local res = {}
+
+    -- выясняем угол отклонения для каждой руки
+    local resUnsorted = {}
+    local middle = MiddlePoint()
+    for _,hand in ipairs(Hands.getHands()) do
+        local color = hand.getValue()
+        local direction = hand.getPosition() - middle
+        local angle
+        if direction.z == 0 then
+            angle = Choose(direction.x > 0, 90, 270)
+        else
+            angle = math.atan(direction.x / direction.z)
+            angle = math.deg(angle)
+            local sector = Sector(direction.x, direction.z)
+            if     sector == 1 then
+            elseif sector == 2 then
+                angle = angle + 180
+            elseif sector == 3 then
+                angle = angle + 180
+            elseif sector == 4 then
+                angle = angle + 360
+            end
+        end
+        local index = math.floor(angle * 100)
+        resUnsorted[index] = color
+    end
+
+    -- упорядочиваем руки по возрастанию угла
+    local keys = Keys(resUnsorted)
+    table.sort(keys)
+    for _,i in ipairs(keys) do
+        table.insert(res, resUnsorted[i])
+    end
+
+    return res
+end
+
+--#endregion Player
 
 ---Загружает состояние
 ---@param script_state string
@@ -189,11 +347,12 @@ end
 ---Располагает объекты по кругу вокруг точки
 ---@param objectList tts__Object[]
 ---@param radius number
----@param startAngle number стартовый угол
----@param center tts__Vector
----@param y number
----@param additionalRotate number
-function ArrangeInCircle(objectList, radius, optionalParams) --startAngle, center, y, additionalRotate)
+---@param optionalParams table
+    -- startAngle number стартовый угол
+    -- center tts__Vector
+    -- y number
+    -- additionalRotate number
+function ArrangeInCircle(objectList, radius, optionalParams)
     if not optionalParams then
         optionalParams = {}
     end
@@ -250,104 +409,6 @@ function HasAnyTagFrom(object, tags)
     return false
 end
 
---#region Player
-
----Определяет цвет ближайшей к объекту руки
----@param object tts__Object
----@return tts__Color
-function GetColorByDistance(object)
-    local res
-
-    local distance = 999
-    for _,hand in pairs(Hands.getHands()) do
-        local newDistance = Vector.distance(object.getPosition(), hand.getPosition())
-        if newDistance < distance then
-            distance = newDistance
-            res = hand.getValue()
-        end
-    end
-
-    return res
-end
-
----Возвращает следующего игрока
----@param list tts__PlayerColor[] порядок хода игроков, цветами
----@param color tts__PlayerColor следующего после этого цвета
----@return tts__PlayerColor
-function NextPlayer(list, color)
-    list = Choose(list, list, Turns.order)
-    color = Choose(color, color, Turns.turn_color)
-
-    local found = false
-    for _,col in ipairs(list) do
-        if found then
-            return col
-        end
-        if color == col then
-            found = true
-        end
-    end
-    return list[1]
-end
-
----Возвращает очередность ходов, упорядоченную начиная с переданного цвета
----@param list tts__PlayerColor[] порядок ходов
----@param color tts__PlayerColor начинать с этого цвета
----@return tts__PlayerColor[]
-function SortByPlayer(list, color)
-    local res = {}
-
-    local found = false
-    for _,col in ipairs(list) do
-        if color == col then
-            found = true
-        end
-        if found then
-            table.insert(res, col)
-        end
-    end
-
-    found = false
-    for _,col in ipairs(list) do
-        if color == col then
-            found = true
-            break
-        end
-        if not found then
-            table.insert(res, col)
-        end
-    end
-
-    return res
-end
-
----Возвращает игроков кроме ГМ'а и зрителей
----@return tts__PlayerColor[]
-function GetTruePlayers()
-    local colors = {}
-    for _,player in ipairs(Player.getPlayers()) do
-        if player.color ~='Black' and player.color ~='Grey' then
-            table.insert(colors, player.color)
-        end
-    end
-    return colors
-end
-
----Возвращает игрока по цвету
----@param color tts__PlayerColor
----@return tts__Player|nil
-function GetPlayerByColor(color)
-    local players = Player.getPlayers()
-    for _,player in ipairs(players) do
-        if player.color == color then
-            return player
-        end
-    end
-    return nil
-end
-
---#endregion Player
-
 --#endregion TTS
 
 --#region Math
@@ -360,6 +421,24 @@ end
 function InVicinity(value, target, fault)
     local fault = First(fault, 1)
     local res = (target - fault < value) and (value < target + fault)
+    return res
+end
+
+---Возвращается сектор окружности по координатам
+---@param x number
+---@param y number
+---@return integer|nil
+function Sector(x, y)
+    local res
+    if     x >= 0 and y >= 0 then
+        res = 1
+    elseif x >= 0 and y < 0 then
+        res = 2
+    elseif x < 0 and y < 0 then
+        res = 3
+    elseif x < 0 and y >= 0 then
+        res = 4
+    end
     return res
 end
 

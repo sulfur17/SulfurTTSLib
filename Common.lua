@@ -115,14 +115,8 @@ function PlayerHands(color)
     return res
 end
 
-function MiddlePoint()
-    local res = Vector(0,0,0)
-    for _,hand in ipairs(Hands.getHands()) do
-        res = res + hand.getPosition()
-    end
-    return res * (1 / #Hands.getHands())
-end
-
+---Определяет порядок хода по расположению рук по часовой стрелке
+---@return string[] цвета
 function TurnOrder()
     local res = {}
 
@@ -160,6 +154,16 @@ function TurnOrder()
     end
 
     return res
+end
+
+---Находит середину стола
+---@return tts__Vector
+function MiddlePoint()
+    local res = Vector(0,0,0)
+    for _,hand in ipairs(Hands.getHands()) do
+        res = res + hand.getPosition()
+    end
+    return res * (1 / #Hands.getHands())
 end
 
 --#endregion Player

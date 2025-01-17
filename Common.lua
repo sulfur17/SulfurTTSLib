@@ -413,6 +413,22 @@ function HasAnyTagFrom(object, tags)
     return false
 end
 
+---Устанавливает кулдаун на нажатие кнопки или другое событие
+---@param list string[] массив для названий кулдаунов
+---@param name string имя кулдауна
+function SetOnCooldown(list, name)
+    list[name] = true
+    Wait.time(function() list[name] = nil end, 0.3)
+end
+
+---Проверяет установлен ли кулдаун
+---@param list string[]
+---@param name string
+---@return boolean
+function IsOnCooldown(list, name)
+    return list[name]
+end
+
 --#endregion TTS
 
 --#region Math

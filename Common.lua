@@ -168,6 +168,68 @@ end
 
 --#endregion Player
 
+---Отправляет лог на web-форму
+function SendStartLog()
+
+    local function PlayerDescription(player)
+        if not player then
+            return '-'
+        end
+        local res = string.format('%s (id=%s)', player.steam_name, player.steam_id)
+        return res
+    end
+
+    -- Выясняем хоста
+    local host
+    for _,player in ipairs(Player.getPlayers()) do
+        if player.host then
+            host = player
+            break
+        end
+    end
+
+    -- Выясняем других игроков и зрителей
+    local players = {}
+    local spectators = {}
+    for _,player in ipairs(Player.getPlayers()) do
+        if not player.host then
+            table.insert(players, player)
+        end
+    end
+    for _,spectator in ipairs(Player.getSpectators()) do
+        if not spectator.host then
+            table.insert(spectators, spectator)
+        end
+    end
+    table.sort(players, function (a, b) return (a.steam_name < b.steam_name) end)
+    table.sort(spectators, function (a, b) return (a.steam_name < b.steam_name) end)
+    local playersDescriptions = {}
+    local spectatorsDescriptions = {}
+    for _,player in ipairs(players) do
+        table.insert(playersDescriptions, PlayerDescription(player))
+    end
+    for _,spectator in ipairs(spectators) do
+        table.insert(spectatorsDescriptions, PlayerDescription(spectator))
+    end
+    local playersTotal = {table.concat(playersDescriptions, '\n')}
+    if #spectatorsDescriptions > 0 then
+        table.insert(playersTotal, spectatorsDescriptions)
+    end
+
+    table.sort(players)
+    -- Отправляем
+    local infoTable = {
+        ['entry.866993041'] = PlayerDescription(host),-- Хост
+        ['entry.2082571243'] = Info.name, -- Игра
+        ['entry.1561105720'] = table.concat(playersTotal, '----------------') -- Игроки
+    }
+
+    local url = 'https://docs.google.com/forms/d/e/1FAIpQLSceeSmVFufBIO6IWTxIEFXYAWvfpvk8Oi4ptSYqIVOuiT-kdw/formResponse'
+
+    WebRequest.post(url, infoTable)
+
+end
+
 ---Загружает состояние
 ---@param script_state string
 ---@return nil|any state декодированный JSON, обычно множество
@@ -417,8 +479,10 @@ end
 ---@param list string[] массив для названий кулдаунов
 ---@param name string имя кулдауна
 function SetOnCooldown(list, name)
+    local result = IsOnCooldown(list, name)
     list[name] = true
     Wait.time(function() list[name] = nil end, 0.3)
+    return result
 end
 
 ---Проверяет установлен ли кулдаун

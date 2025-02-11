@@ -190,38 +190,23 @@ function SendStartLog()
 
     -- Выясняем других игроков и зрителей
     local players = {}
-    local spectators = {}
     for _,player in ipairs(Player.getPlayers()) do
         if not player.host then
             table.insert(players, player)
         end
     end
-    for _,spectator in ipairs(Player.getSpectators()) do
-        if not spectator.host then
-            table.insert(spectators, spectator)
-        end
-    end
     table.sort(players, function (a, b) return (a.steam_name < b.steam_name) end)
-    table.sort(spectators, function (a, b) return (a.steam_name < b.steam_name) end)
     local playersDescriptions = {}
-    local spectatorsDescriptions = {}
     for _,player in ipairs(players) do
         table.insert(playersDescriptions, PlayerDescription(player))
     end
-    for _,spectator in ipairs(spectators) do
-        table.insert(spectatorsDescriptions, PlayerDescription(spectator))
-    end
-    local playersTotal = {table.concat(playersDescriptions, '\n')}
-    if #spectatorsDescriptions > 0 then
-        table.insert(playersTotal, spectatorsDescriptions)
-    end
+    local playersTotal = table.concat(playersDescriptions, '\n')
 
-    table.sort(players)
     -- Отправляем
     local infoTable = {
         ['entry.866993041'] = PlayerDescription(host),-- Хост
         ['entry.2082571243'] = Info.name, -- Игра
-        ['entry.1561105720'] = table.concat(playersTotal, '----------------') -- Игроки
+        ['entry.1561105720'] = playersTotal -- Игроки
     }
 
     local url = 'https://docs.google.com/forms/d/e/1FAIpQLSceeSmVFufBIO6IWTxIEFXYAWvfpvk8Oi4ptSYqIVOuiT-kdw/formResponse'

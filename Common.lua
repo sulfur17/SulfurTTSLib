@@ -175,7 +175,7 @@ function SendStartLog()
         if not player then
             return '-'
         end
-        local res = string.format('%s (id=%s)', player.steam_name, player.steam_id)
+        local res = string.format('(id=%s) %s', player.steam_id, player.steam_name)
         return res
     end
 

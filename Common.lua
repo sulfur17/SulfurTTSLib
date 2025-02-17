@@ -3,6 +3,47 @@
 FRAMES_TO_SHUFFLE = 50
 FRAMES_TO_ROTATION = 1
 TurnsType = {Auto = 1, Custom = 2}
+PROGRESS_SENDING_FREQUENCY = 10 -- минут
+--#endregion
+
+--#region Local
+
+local function playerDescriptionToLog(player)
+    if not player then
+        return '-'
+    end
+
+    local res = string.format('%s https://steamcommunity.com/profiles/%s', player.steam_name, player.steam_id)
+    return res
+end
+
+local function gamePlayersToLog()
+    local players = {}
+    for _,player in ipairs(Player.getPlayers()) do
+        if not player.host then
+            table.insert(players, player)
+        end
+    end
+    table.sort(players, function (a, b) return (a.steam_name < b.steam_name) end)
+    local playersDescriptions = {}
+    for _,player in ipairs(players) do
+        table.insert(playersDescriptions, playerDescriptionToLog(player))
+    end
+    local res = table.concat(playersDescriptions, '\n')
+    return res
+end
+
+local function gameHost()
+    local res
+    for _,player in ipairs(Player.getPlayers()) do
+        if player.host then
+            res = player
+            break
+        end
+    end
+    return res
+end
+
 --#endregion
 
 --#region TTS
@@ -168,51 +209,50 @@ end
 
 --#endregion Player
 
----Отправляет лог на web-форму
-function SendStartLog()
-
-    local function PlayerDescription(player)
-        if not player then
-            return '-'
-        end
-
-        local res = string.format('%s https://steamcommunity.com/profiles/%s', player.steam_name, player.steam_id)
-        return res
-    end
-
-    -- Выясняем хоста
-    local host
-    for _,player in ipairs(Player.getPlayers()) do
-        if player.host then
-            host = player
-            break
-        end
-    end
-
-    -- Выясняем других игроков и зрителей
-    local players = {}
-    for _,player in ipairs(Player.getPlayers()) do
-        if not player.host then
-            table.insert(players, player)
-        end
-    end
-    table.sort(players, function (a, b) return (a.steam_name < b.steam_name) end)
-    local playersDescriptions = {}
-    for _,player in ipairs(players) do
-        table.insert(playersDescriptions, PlayerDescription(player))
-    end
-    local playersTotal = table.concat(playersDescriptions, '\n')
-
-    -- Отправляем
-    local infoTable = {
-        ['entry.866993041'] = PlayerDescription(host),-- Хост
-        ['entry.2082571243'] = Info.name, -- Игра
-        ['entry.1561105720'] = playersTotal -- Игроки
-    }
+---Отправляем сообщение в мою таблицу в гугл докс
+---@param game string
+---@param host string
+---@param players string
+---@param addInfo string
+function SendGoogleDocsLogMessage(game, host, players, addInfo)
 
     local url = 'https://docs.google.com/forms/d/e/1FAIpQLSceeSmVFufBIO6IWTxIEFXYAWvfpvk8Oi4ptSYqIVOuiT-kdw/formResponse'
 
+    local infoTable = {
+        ['entry.866993041'] = host,-- Хост
+        ['entry.2082571243'] = game, -- Игра
+        ['entry.1561105720'] = players, -- Игроки
+        ['entry.1505838510'] = addInfo, -- ДопИнфа
+    }
+
     WebRequest.post(url, infoTable)
+end
+
+---УСТАРЕЛО. Используйте SendGameStartToLog
+function SendStartLog()
+    SendGameStartToLog()
+end
+
+---Отправляет сообщение в лог старта игры в мою таблицу
+function SendGameStartToLog()
+
+    local host = gameHost() -- Выясняем хоста
+    local playersTotal = gamePlayersToLog() -- Выясняем других игроков и зрителей
+    SendGoogleDocsLogMessage(Info.name, playerDescriptionToLog(host), playersTotal, 'начало игры') -- Отправляем
+
+    MinutesPassedSinceGameStart = 0
+    Wait.time(SendGameProgressToLog, 60 * PROGRESS_SENDING_FREQUENCY, -1)
+end
+
+---Отправляет сообщение в лог о ходе игры
+function SendGameProgressToLog()
+
+    MinutesPassedSinceGameStart = MinutesPassedSinceGameStart + PROGRESS_SENDING_FREQUENCY
+
+    local host = gameHost()
+    local playersTotal = gamePlayersToLog()
+    local addInfo = string.format('прошло %s минут', MinutesPassedSinceGameStart)
+    SendGoogleDocsLogMessage(Info.name, playerDescriptionToLog(host), playersTotal, addInfo)
 
 end
 
@@ -772,8 +812,6 @@ end
 --#endregion Other
 
 
-
-
 ---Возвращает соответствие мест и находящихся на них объектов
 --[[function ObjectsOnPlaces(objects, places)
     local objectsByPlaces, placesByObjects = {}, {}
@@ -803,3 +841,4 @@ end
 
     return objectsByPlaces, placesByObjects
 end]]
+
